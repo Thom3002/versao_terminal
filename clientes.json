@@ -1,0 +1,32 @@
+[
+    {
+        "nome": "Thomas",
+        "cpf": "192.292.489-40",
+        "email": "thomas.mello30@gmail.com"
+    },
+    {
+        "nome": "Fulano",
+        "cpf": "192.393.291-40",
+        "email": "fulano@gmail.com"
+    },
+    {
+        "nome": "ciclano",
+        "cpf": "322313",
+        "email": "ciclano@gmail.com"
+    },
+    {
+        "nome": "Thomas de Mello Oliva",
+        "cpf": "3894843838-40",
+        "email": "thomas.mello@gmai.com"
+    },
+    {
+        "nome": "teste",
+        "cpf": "3453543543",
+        "email": "teste@gmsail.com"
+    },
+    {
+        "nome": "Ana Carolina",
+        "cpf": "18419299723",
+        "email": "ana@hotmal"
+    }
+]

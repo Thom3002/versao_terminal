@@ -1,0 +1,44 @@
+[
+    {
+        "jogo_id": "1",
+        "nome": "Banco Imobiliário",
+        "qtd": 1,
+        "preco_aluguel": 12,
+        "cont": 0
+    },
+    {
+        "jogo_id": "3",
+        "nome": "Detetive",
+        "qtd": 0,
+        "preco_aluguel": 15,
+        "cont": 0
+    },
+    {
+        "jogo_id": "4",
+        "nome": "Ludo",
+        "qtd": 0,
+        "preco_aluguel": 5,
+        "cont": 0
+    },
+    {
+        "jogo_id": "6",
+        "nome": "Xadrez",
+        "qtd": 0,
+        "preco_aluguel": 10,
+        "cont": 0
+    },
+    {
+        "jogo_id": "7",
+        "nome": "Dama",
+        "qtd": 0,
+        "preco_aluguel": 3,
+        "cont": 0
+    },
+    {
+        "jogo_id": "8",
+        "nome": "Gamão",
+        "qtd": 0,
+        "preco_aluguel": 4,
+        "cont": 0
+    }
+]
