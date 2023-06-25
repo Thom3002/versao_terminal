@@ -4,17 +4,9 @@ import sys
 from time import sleep
 import json
 
-# Variáveis globais
-TEMPO_CARREGAMENTO = 1 # tempo da animacao de carregamento
-LOGIN_FEITO = False
-CONTADOR = 0 # Conta quantas vezes um jogo que está sem estoque foi solicitado, se chegar a 3 dispara ao fornecedor a solicitação do jogo
-REPOSICAO_QTD = 6 # Quantidade de jogos solicitados ao fornecedor quando acaba o estoque
-
-lista_clientes = []
-lista_jogos = [] 
-
-global nome_cliente
-global saldo
+from cliente import *
+from locadora import *
+from auxiliares import *
 
 # Definição de funções
 
@@ -55,11 +47,7 @@ def registra_saldo_arquivo(saldo):
         arquivo.writelines(linhas)
         arquivo.truncate()
 
-def registra_pedidos(nome_jogo, quantidade):
-    pedido = {"nome": nome_jogo, "qtd": quantidade}
-    with open('pedidos.json', 'a') as arquivo:
-        json.dump(pedido, arquivo, ensure_ascii=False, indent=4)
-        arquivo.write('\n')
+
 
 def exibir_menu_principal():  # MENU PRINCIPAL
     clear()
@@ -96,6 +84,8 @@ def exibir_menu_cliente():  # MENU CLIENTE
     global lista_clientes
     global lista_jogos
     global LOGIN_FEITO
+    global nome_cliente
+    global saldo
     clear()
     
     if LOGIN_FEITO:
@@ -112,14 +102,14 @@ def exibir_menu_cliente():  # MENU CLIENTE
 
         if opcao == "1":
             clear()
-            alugar_jogo(lista_jogos)
+            saldo = alugar_jogo(lista_jogos, saldo)
         elif opcao == "2":
-            retornar_jogo()
+            lista_jogos = retornar_jogo(lista_jogos)
         elif opcao == "3":  # Voltar
             clear()
             animacao_espera(TEMPO_CARREGAMENTO, "REDIRECIONANDO PARA MENU PRINCIPAL")
             exibir_menu_principal()
-        elif opcao == "4": # Logout
+        elif opcao == "4":  # Logout
             LOGIN_FEITO = False
             clear()
             print("Logout selecionado.\n")
@@ -132,11 +122,15 @@ def exibir_menu_cliente():  # MENU CLIENTE
         continua("cliente")
         
     else:
-        if valida_cliente(lista_clientes) == False:
+        print("LOGIN:\n")
+        nome = input("Para continuar, digite seu nome: ")
+        
+        if valida_cliente(lista_clientes, nome) == False:
             print("Cliente não cadastrado. Favor faça seu cadastro: \n")
             lista_clientes = cadastrar_cliente(lista_clientes)
             continua("cliente")
         else:
+            nome_cliente = nome
             animacao_espera(TEMPO_CARREGAMENTO, "LOGIN REALIZADO COM SUCESSO! REDIRECIONANDO PARA O MENU CLIENTE...")
             LOGIN_FEITO = True
             exibir_menu_cliente()
@@ -149,7 +143,7 @@ def exibir_menu_locadora():  # MENU LOCADORA
     global lista_clientes
     # print("__________________________")
     # exibir_jogos(lista_jogos)
-    print("\nSaldo da loja: R$ {}".format(saldo))
+    print("Saldo da loja: R$ {}".format(saldo))
     print("__________________________")
     print("MENU LOCADORA\n")
     print("1 - Cadastrar cliente")
@@ -170,7 +164,7 @@ def exibir_menu_locadora():  # MENU LOCADORA
         print(lista_jogos)
         
     elif opcao == "3":
-        excluir_jogo(lista_jogos)
+        lista_jogos = excluir_jogo(lista_jogos)
     elif opcao == "4":
         consultar_estoque(lista_jogos)
     elif opcao == "5":
@@ -188,180 +182,12 @@ def exibir_menu_locadora():  # MENU LOCADORA
     continua("locadora") #volta para o menu locadora
 
 
-# FUNCOES CLIENTE
-def alugar_jogo(lista_jogos):
-    global saldo
-    encontrou = False
-    print("Opção 'Alugar jogo' selecionada.\n")
-    exibir_jogos(lista_jogos)
-    print("__________________________\n")
-    nome_jogo = input("Digite o nome do jogo a ser alugado: ")
-    for jogo in lista_jogos:
-        if jogo["nome"] == nome_jogo:
-            print("\n__________________________\n")
-            encontrou = True
-            opcao_valida = False
-            if jogo["qtd"] > 0:
-                print("Período de aluguel:\n")
-                print("1 - Um dia")
-                print("2 - Uma semana")
-                print("__________________________\n")
-                opcao = int(input("Escolha uma opção: "))
-                if opcao == 1:
-                    opcao_valida = True
-                    clear()
-                    pagamento = 1 * jogo["preco_aluguel"]
-                    novo_saldo = saldo + pagamento
-                    print("{} alugado com sucesso por 1 dia! Valor a pagar: R$ {} (1 dia x R$ {})\nNovo saldo: R$ {} + (R$ {}) = R$ {}".format(nome_jogo, pagamento, jogo["preco_aluguel"], saldo, pagamento, novo_saldo))
-                    saldo = novo_saldo
-                    
-                elif opcao == 2:
-                    opcao_valida = True
-                    clear()
-                    pagamento = 7 * jogo["preco_aluguel"]
-                    novo_saldo = saldo + pagamento
-                    print("{} alugado com sucesso por 1 semana! Valor a pagar: R$ {} (7 dias x R$ {})\nNovo saldo: R$ {} + (R$ {}) = R$ {}".format(nome_jogo, pagamento, jogo["preco_aluguel"], saldo, pagamento, novo_saldo))
-                    saldo = novo_saldo
-                else: 
-                    print("Opção inválida.")
-                    alugar_jogo()
-                if opcao_valida:
-                    jogo["qtd"] -= 1 
-                    print("\n{}:  | Quantidade no estoque atualizada: {}\n".format(nome_jogo, jogo["qtd"]))
-                
-            else:
-                jogo["cont"] += 1
-                print("Sem estoque. {}° solicitação.".format(jogo["cont"]))
-                if jogo["cont"] == 3:
-                    print("\nMandando reposicao de estoque do jogo {} ao fornecedor.".format(jogo["nome"]))# dispara ao fornecedor solicitacao para repor o estoque do jogo]
-                    registra_pedidos(jogo["nome"], REPOSICAO_QTD)
-                    jogo["cont"] = 0
-            break
-    if not encontrou:
-        print("Jogo não encontrado no estoque.")
-        # aumenta o contador, se chegar a 3 dispara ao fornecedor a solicitacao para comprar esse jogo
-    
-def retornar_jogo():
-    global lista_jogos
-    encontrou = False
-    clear()
-    print("Opção 'Retornar jogo' selecionada.\n")
-    exibir_jogos(lista_jogos)
-    print("__________________________\n")
-    nome_jogo = input("Digite o nome do jogo a ser retornado: ")
-    for jogo in lista_jogos:
-        if jogo["nome"] == nome_jogo:
-            encontrou = True
-            print("\nJogo retornado com sucesso!")
-            jogo["qtd"] += 1 
-            print("\n{}:  | Quantidade no estoque atualizada: {}\n".format(nome_jogo, jogo["qtd"]))
-            break
-    if not encontrou:
-        print("Jogo não encontrado no estoque.")
-  
-def valida_cliente(lista_clientes): # verifica se o cliente existe no cadastro tipo um login
-    global nome_cliente
-    clear()
-    print("LOGIN:\n")
-    nome_cliente = input("Para continuar, digite seu nome: ")
-    for cliente in lista_clientes:
-        if cliente['nome'] == nome_cliente:
-            return True
-    return False
+# FUNCOES CLIENTE 
 
 # FUNCOES LOCADORA
-def cadastrar_cliente(lista_clientes):
-    nome = input("Digite o nome do cliente: ")
-    cpf = input("Digite o CPF do cliente: ")
-    email = input("Digite o e-mail do cliente: ")
-
-    clientes = {'nome': nome, 'cpf': cpf, 'email': email}
-    lista_clientes.append(clientes)
-    print("Cliente cadastrado com sucesso!")
-    # print(lista_clientes)
-    return lista_clientes
-
-
-def cadastrar_jogo(lista_jogos):
-    print("Opção 'Cadastrar jogo' selecionada.\n")
-    clear()
-    jogo_id = input("Digite o id do jogo: ")
-    nome = input("Digite o nome do jogo: ")
-    qtd = int(input("Numero de unidades: "))
-    preco_aluguel = int(input("Preço de aluguel(diária): R$ "))
-    jogo = {'jogo_id': jogo_id, 'nome': nome, 'qtd': qtd, 'preco_aluguel': preco_aluguel, 'cont': 0}
-    lista_jogos.append(jogo)
-    return lista_jogos
-
-
-def excluir_jogo(lista_jogos):
-    clear()
-    print("Opção 'Excluir jogo' selecionada.\n")
-    if not lista_jogos:
-        print("A lista de jogos está vazia.")
-    else:
-        exibir_jogos(lista_jogos)
-
-        jogo_id = input("\nDigite o ID do jogo que você deseja excluir: ")
-
-        for jogo in lista_jogos:
-            if jogo['jogo_id'] == jogo_id:
-                lista_jogos.remove(jogo)
-                print("Jogo removido com sucesso!")
-                break
-        else:
-            print("Jogo não encontrado no estoque.")
-
-        exibir_jogos(lista_jogos)
-
-
-def exibir_jogos(lista_jogos):  # Auxiliar para excluir jogos
-    if not lista_jogos:
-        print("A lista de jogos está vazia.")
-    else:
-        print("Jogos disponíveis:")
-        i = 1
-        for jogo in lista_jogos:
-            print(f"{str(i).ljust(3)} | ID: {str(jogo['jogo_id']).ljust(4)} | Nome: {jogo['nome'].ljust(20)} | Quantidade: {str(jogo['qtd']).ljust(4)} | Preço de aluguel(diária): R$ {str(jogo['preco_aluguel']).ljust(5)}")
-
-            i += 1
-
-def exibir_clientes(lista_clientes):  
-    clear()
-    print("Opção 'Exibir clientes' selecionada.\n")
-    if not lista_clientes:
-        print("A lista de clientes está vazia.")
-    else:
-        print("Lista de clientes cadastrados:")
-        i = 1
-        for cliente in lista_clientes:
-            print(f"{str(i).ljust(3)} | Nome: {cliente['nome'].ljust(25)} | CPF: {cliente['cpf'].ljust(14)} | E-mail: {cliente['email']}")
-
-            i += 1
-                        
-def consultar_estoque(jogos):
-    global lista_clientes
-    clear()
-    print("Opção 'Consultar estoque' selecionada.\n")
-    if not jogos:
-        print("Estoque vazio.")
-    else:
-        exibir_jogos(jogos)
-
 
 
 # OUTRAS FUNÇOES
-def animacao_espera(segundos, mensagem):
-    animacao = "|/-\\"
-    i = 0
-    while segundos > 0:
-        print(mensagem, animacao[i % len(animacao)], end="\r")
-        i += 1
-        sleep(0.1)
-        segundos -= 0.1
-    clear()
-
-
 def continua(menu):
     print("\nDeseja continuar?\n")
     print("1 - SIM")
@@ -387,13 +213,6 @@ def continua(menu):
         print("\nOpção inválida! Tente novamente.\n")
         animacao_espera(TEMPO_CARREGAMENTO, "Aguarde um momento...")
         continua(menu)
-
-
-def clear():
-    if platform.system() == 'Windows':
-        os.system('cls')
-    else:
-        os.system('clear')
 
 # main
 lista_jogos = ler_json("estoque.json")

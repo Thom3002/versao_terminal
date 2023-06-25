@@ -18,7 +18,7 @@
         "nome": "Ludo",
         "qtd": 0,
         "preco_aluguel": 5,
-        "cont": 0
+        "cont": 2
     },
     {
         "jogo_id": "6",
@@ -30,15 +30,15 @@
     {
         "jogo_id": "7",
         "nome": "Dama",
-        "qtd": 0,
+        "qtd": 1,
         "preco_aluguel": 3,
-        "cont": 0
+        "cont": 1
     },
     {
-        "jogo_id": "8",
-        "nome": "Gamão",
-        "qtd": 0,
-        "preco_aluguel": 4,
+        "jogo_id": "9",
+        "nome": "Monopoly",
+        "qtd": 1,
+        "preco_aluguel": 5,
         "cont": 0
     }
 ]
